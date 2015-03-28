@@ -1,0 +1,11 @@
+{
+  "Board": 3,
+  "Entities": [
+    {
+      "Name": "desk_light",
+      "FriendlyName": "Desk Light",
+      "Pin": 1,
+      "Type": "Output"
+    }
+  ]
+}
