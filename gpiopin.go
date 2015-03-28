@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os/exec"
 	"strconv"
@@ -28,9 +27,8 @@ const (
 	LOW = false
 )
 
-func gpioExec(command string) (string, error) {
-	log.Printf("executing %s\n", command)
-	cmd := exec.Command("gpio", command)
+func gpioExec(args []string) (string, error) {
+	cmd := exec.Command("gpio", args...)
 	output, err := cmd.Output()
 	return string(output), err
 }
@@ -55,7 +53,7 @@ func CreatePin(num int, direction bool) GPIOPin {
 // State returns the current state of the GPIOPin.
 func (pin *GPIOPin) State() bool {
 	// TODO: erm, this
-	output, err := gpioExec(fmt.Sprintf("read %d", pin.Number))
+	output, err := gpioExec([]string{"read", string(pin.Number)})
 	if handleError(err) {
 		return false
 	}
@@ -69,11 +67,11 @@ func (pin *GPIOPin) State() bool {
 
 // SetState sets the state of the GPIOPin.
 func (pin *GPIOPin) SetState(state bool) {
-	var istate int
+	var sstate = "0"
 	if state {
-		istate = 1
+		sstate = "1"
 	}
-	_, err := gpioExec(fmt.Sprintf("write %d %d", pin.Number, istate))
+	_, err := gpioExec([]string{"write", string(pin.Number), sstate})
 	handleError(err)
 }
 
@@ -89,6 +87,6 @@ func (pin *GPIOPin) SetDirection(direction bool) {
 	if direction {
 		dir = "out"
 	}
-	_, err := gpioExec(fmt.Sprintf("mode %d %s", pin.Number, dir))
+	_, err := gpioExec([]string{"mode", string(pin.Number), dir})
 	handleError(err)
 }
