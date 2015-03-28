@@ -99,7 +99,7 @@ func createPins(revision uint8) []GPIOPin {
 }
 
 func main() {
-	var configFile = "~/gohome.json"
+	var configFile = "./gohome.json"
 	if len(os.Args) > 1 {
 		configFile = os.Args[1]
 	}
