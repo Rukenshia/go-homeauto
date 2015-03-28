@@ -34,7 +34,7 @@ func gpioExec(args []string) (string, error) {
 	if err != nil {
 		log.Printf("Error: '%s (args: %v)'\n", err, args)
 	}
-	if output[len(output)-1] == '\n' {
+	if len(output) > 0 && output[len(output)-1] == '\n' {
 		output = output[:len(output)-1]
 	}
 	return string(output), err
