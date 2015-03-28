@@ -129,7 +129,12 @@ func main() {
 	commands = append(commands, Command{trigger: "state", handler: func(entity Entity, args []string) Answer {
 		if len(args) == 0 {
 			var state int
-			if pins[entity.Pin].State() {
+			bstate, err := pins[entity.Pin].State()
+			if err != nil {
+				return Answer{Status: "error", Data: "internal error"}
+			}
+
+			if bstate {
 				state = 1
 			}
 			return Answer{Status: "ok", Data: strconv.Itoa(state)}
@@ -162,9 +167,13 @@ func main() {
 		if !entity.IsOutput() {
 			return Answer{Status: "error", Data: "entity is input"}
 		}
-		pins[entity.Pin].SetState(!pins[entity.Pin].State())
+		bstate, err := pins[entity.Pin].State()
+		if err != nil {
+			return Answer{Status: "error", Data: "internal error"}
+		}
+		pins[entity.Pin].SetState(!bstate)
 		var state int
-		if pins[entity.Pin].State() {
+		if bstate {
 			state = 1
 		}
 		return Answer{Status: "ok", Data: strconv.Itoa(state)}

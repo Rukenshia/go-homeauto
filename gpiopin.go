@@ -30,6 +30,10 @@ const (
 func gpioExec(args []string) (string, error) {
 	cmd := exec.Command("gpio", args...)
 	output, err := cmd.Output()
+
+	if err != nil {
+		log.Printf("Error: '%s %s'\n", err, output)
+	}
 	return string(output), err
 }
 
@@ -51,28 +55,25 @@ func CreatePin(num int, direction bool) GPIOPin {
 }
 
 // State returns the current state of the GPIOPin.
-func (pin *GPIOPin) State() bool {
+func (pin *GPIOPin) State() (bool, error) {
 	// TODO: erm, this
 	output, err := gpioExec([]string{"read", string(pin.Number)})
 	if handleError(err) {
-		return false
+		return false, err
 	}
 
 	state, err := strconv.Atoi(output)
-	if handleError(err) {
-		return false
-	}
-	return (state == 1)
+	return (state == 1), err
 }
 
 // SetState sets the state of the GPIOPin.
-func (pin *GPIOPin) SetState(state bool) {
+func (pin *GPIOPin) SetState(state bool) error {
 	var sstate = "0"
 	if state {
 		sstate = "1"
 	}
 	_, err := gpioExec([]string{"write", string(pin.Number), sstate})
-	handleError(err)
+	return err
 }
 
 // Direction returns the direction of the GPIOPin.
@@ -81,12 +82,12 @@ func (pin *GPIOPin) Direction() bool {
 }
 
 // SetDirection sets the Direction of a GPIOPin.
-func (pin *GPIOPin) SetDirection(direction bool) {
+func (pin *GPIOPin) SetDirection(direction bool) error {
 	pin.direction = direction
 	var dir = "in"
 	if direction {
 		dir = "out"
 	}
 	_, err := gpioExec([]string{"mode", string(pin.Number), dir})
-	handleError(err)
+	return err
 }
