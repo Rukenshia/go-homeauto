@@ -60,7 +60,6 @@ func receiveData(data []byte, sender *net.UDPAddr, err error) (Answer, bool) {
 	// Check if the command is an actual command
 	retn := Answer{Status: "error", Data: "invalid command"}
 	for _, command := range commands {
-		log.Printf("%s,%s\n", request.Command, command.trigger)
 		if command.trigger == strings.ToLower(request.Command) {
 			retn = command.handler(requestEntity, request.Args)
 			break
@@ -156,16 +155,16 @@ func main() {
 		} else {
 			pins[entity.Pin].SetState(false)
 		}
-		return Answer{Status: "ok"}
+		return Answer{Status: "ok", Data: args[0]}
 
 	}})
 	// Direction Command
 	commands = append(commands, Command{trigger: "direction", handler: func(entity Entity, args []string) Answer {
-		var direction int
+		var direction = "input"
 		if pins[entity.Pin].Direction() {
-			direction = 1
+			direction = "output"
 		}
-		return Answer{Status: "ok", Data: strconv.Itoa(direction)}
+		return Answer{Status: "ok", Data: direction}
 	}})
 	// Toggle Command
 	commands = append(commands, Command{trigger: "toggle", handler: func(entity Entity, args []string) Answer {
