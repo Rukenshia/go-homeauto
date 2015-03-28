@@ -29,6 +29,7 @@ const (
 )
 
 func gpioExec(command string) (string, error) {
+	log.Printf("executing %s\n", command)
 	cmd := exec.Command("gpio", command)
 	output, err := cmd.CombinedOutput()
 
@@ -73,7 +74,8 @@ func (pin *GPIOPin) SetState(state bool) {
 	if state {
 		istate = 1
 	}
-	gpioExec(fmt.Sprintf("write %d %d", pin.Number, istate))
+	_, err := gpioExec(fmt.Sprintf("write %d %d", pin.Number, istate))
+	handleError(err)
 }
 
 // Direction returns the direction of the GPIOPin.
@@ -88,5 +90,6 @@ func (pin *GPIOPin) SetDirection(direction bool) {
 	if direction {
 		dir = "out"
 	}
-	gpioExec(fmt.Sprintf("mode %d %s", pin.Number, dir))
+	_, err := gpioExec(fmt.Sprintf("mode %d %s", pin.Number, dir))
+	handleError(err)
 }

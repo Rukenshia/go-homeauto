@@ -116,7 +116,7 @@ func main() {
 
 	log.Println("All Pins configured. Starting Server.")
 
-	server := CreateServer("127.0.0.1", 4200)
+	server := CreateServer("0.0.0.0", 4200)
 	server.RegisterCallback(receiveData)
 	err := server.Start()
 
