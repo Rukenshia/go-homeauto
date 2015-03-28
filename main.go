@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net"
 	"strconv"
@@ -135,7 +136,7 @@ func main() {
 			var state int
 			bstate, err := pins[entity.Pin].State()
 			if err != nil {
-				return Answer{Status: "error", Data: "internal error"}
+				return Answer{Status: "error", Data: fmt.Sprintf("internal error: %v", err)}
 			}
 
 			if bstate {
@@ -173,7 +174,7 @@ func main() {
 		}
 		bstate, err := pins[entity.Pin].State()
 		if err != nil {
-			return Answer{Status: "error", Data: "internal error"}
+			return Answer{Status: "error", Data: fmt.Sprintf("internal error: %v", err)}
 		}
 		pins[entity.Pin].SetState(!bstate)
 		var state int
