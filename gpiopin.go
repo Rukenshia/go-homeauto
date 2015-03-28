@@ -31,8 +31,7 @@ const (
 func gpioExec(command string) (string, error) {
 	log.Printf("executing %s\n", command)
 	cmd := exec.Command("gpio", command)
-	output, err := cmd.CombinedOutput()
-
+	output, err := cmd.Output()
 	return string(output), err
 }
 
