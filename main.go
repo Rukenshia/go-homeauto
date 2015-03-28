@@ -12,7 +12,7 @@ import (
 )
 
 // A CommandHandler is a command handler. cpt obvious reporting in
-type CommandHandler func(Entity, []string) Answer
+type CommandHandler func(Entity, []string) Response
 
 // A Command is something that is called from the request and has a trigger. It then executes the handler
 type Command struct {
@@ -32,16 +32,16 @@ var pins []GPIOPin
 var entities []Entity
 var commands []Command
 
-func receiveData(data []byte, sender *net.UDPAddr, err error) (Answer, bool) {
+func receiveData(data []byte, sender *net.UDPAddr, err error) (Response, bool) {
 	if err != nil {
 		log.Printf("Error receiving data: '%s'\n", err)
-		return Answer{Status: "error", Data: "Could not receive your request"}, true
+		return Response{Status: "error", Data: "Could not receive your request"}, true
 	}
 
 	var request Request
 	err = json.Unmarshal(data, &request)
 	if err != nil {
-		return Answer{Status: "error", Data: "invalid request format"}, true
+		return Response{Status: "error", Data: "invalid request format"}, true
 	}
 
 	// Check if entity exists
@@ -55,11 +55,11 @@ func receiveData(data []byte, sender *net.UDPAddr, err error) (Answer, bool) {
 		}
 	}
 	if !exists {
-		return Answer{Status: "error", Data: "invalid entity"}, true
+		return Response{Status: "error", Data: "invalid entity"}, true
 	}
 
 	// Check if the command is an actual command
-	retn := Answer{Status: "error", Data: "invalid command"}
+	retn := Response{Status: "error", Data: "invalid command"}
 	for _, command := range commands {
 		if command.trigger == strings.ToLower(request.Command) {
 			retn = command.handler(requestEntity, request.Args)
@@ -135,57 +135,57 @@ func main() {
 	log.Printf("Server on %s:%d created.\n", server.info.IP, server.info.Port)
 
 	// Register Commands
-	commands = append(commands, Command{trigger: "state", handler: func(entity Entity, args []string) Answer {
+	commands = append(commands, Command{trigger: "state", handler: func(entity Entity, args []string) Response {
 		if len(args) == 0 {
 			var state int
 			bstate, err := pins[entity.Pin].State()
 			if err != nil {
-				return Answer{Status: "error", Data: fmt.Sprintf("internal error: %v", err)}
+				return Response{Status: "error", Data: fmt.Sprintf("internal error: %v", err)}
 			}
 
 			if bstate {
 				state = 1
 			}
-			return Answer{Status: "ok", Data: strconv.Itoa(state)}
+			return Response{Status: "ok", Data: strconv.Itoa(state)}
 		}
 		if !entity.IsOutput() {
-			return Answer{Status: "error", Data: "entity is input"}
+			return Response{Status: "error", Data: "entity is input"}
 		}
 		state, err := strconv.Atoi(args[0])
 		if err != nil {
-			return Answer{Status: "error", Data: "state not an integer"}
+			return Response{Status: "error", Data: "state not an integer"}
 		}
 		if state != 0 {
 			pins[entity.Pin].SetState(true)
 		} else {
 			pins[entity.Pin].SetState(false)
 		}
-		return Answer{Status: "ok", Data: args[0]}
+		return Response{Status: "ok", Data: args[0]}
 
 	}})
 	// Direction Command
-	commands = append(commands, Command{trigger: "direction", handler: func(entity Entity, args []string) Answer {
+	commands = append(commands, Command{trigger: "direction", handler: func(entity Entity, args []string) Response {
 		var direction = "input"
 		if pins[entity.Pin].Direction() {
 			direction = "output"
 		}
-		return Answer{Status: "ok", Data: direction}
+		return Response{Status: "ok", Data: direction}
 	}})
 	// Toggle Command
-	commands = append(commands, Command{trigger: "toggle", handler: func(entity Entity, args []string) Answer {
+	commands = append(commands, Command{trigger: "toggle", handler: func(entity Entity, args []string) Response {
 		if !entity.IsOutput() {
-			return Answer{Status: "error", Data: "entity is input"}
+			return Response{Status: "error", Data: "entity is input"}
 		}
 		bstate, err := pins[entity.Pin].State()
 		if err != nil {
-			return Answer{Status: "error", Data: fmt.Sprintf("internal error: %v", err)}
+			return Response{Status: "error", Data: fmt.Sprintf("internal error: %v", err)}
 		}
 		pins[entity.Pin].SetState(!bstate)
 		var state int
 		if bstate {
 			state = 1
 		}
-		return Answer{Status: "ok", Data: strconv.Itoa(state)}
+		return Response{Status: "ok", Data: strconv.Itoa(state)}
 	}})
 
 	go server.Process()

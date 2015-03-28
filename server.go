@@ -11,8 +11,8 @@ type Server struct {
 	connection *net.UDPConn
 	callbacks  []DataReceivedCallback
 }
-type DataReceivedCallback func([]byte, *net.UDPAddr, error) (Answer, bool)
-type Answer struct {
+type DataReceivedCallback func([]byte, *net.UDPAddr, error) (Response, bool)
+type Response struct {
 	Status string
 	Data   string
 }
@@ -34,7 +34,7 @@ func (server *Server) Start() error {
 
 func (server *Server) Process() {
 	buf := make([]byte, 1024)
-	var answer []Answer
+	var Response []Response
 
 	defer server.connection.Close()
 	for {
@@ -42,19 +42,19 @@ func (server *Server) Process() {
 		if n == 0 {
 			continue
 		}
-		answer = answer[:0]
+		Response = Response[:0]
 		for _, callback := range server.callbacks {
 			retn, handled := callback(buf[:n], client, err)
 			if handled {
-				answer = append(answer, retn)
+				Response = append(Response, retn)
 			}
 		}
 
 		var data []byte
-		if len(answer) == 1 {
-			data, err = json.Marshal(answer[0])
+		if len(Response) == 1 {
+			data, err = json.Marshal(Response[0])
 		} else {
-			data, err = json.Marshal(answer)
+			data, err = json.Marshal(Response)
 		}
 		if err != nil {
 			log.Printf("Could not Marshal Object: '%s'\n", err)
