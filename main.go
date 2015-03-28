@@ -100,8 +100,8 @@ func createPins(revision uint8) []GPIOPin {
 
 func main() {
 	var configFile = "~/gohome.json"
-	if len(os.Args) > 0 {
-		configFile = os.Args[0]
+	if len(os.Args) > 1 {
+		configFile = os.Args[1]
 	}
 	config = LoadConfig(configFile)
 	entities = config.Entities
