@@ -16,8 +16,9 @@ type CommandHandler func(Entity, []string) Response
 
 // A Command is something that is called from the request and has a trigger. It then executes the handler
 type Command struct {
-	trigger string
-	handler CommandHandler
+	trigger    string
+	entityless bool
+	handler    CommandHandler
 }
 
 // Request represents a Request to the server.
@@ -45,24 +46,25 @@ func receiveData(data []byte, sender *net.UDPAddr, err error) (Response, bool) {
 	}
 
 	// Check if entity exists
-	var exists = false
+	var entityExists = false
 	var requestEntity Entity
 	for _, entity := range entities {
 		if entity.Name == request.EntityName {
-			exists = true
+			entityExists = true
 			requestEntity = entity
 			break
 		}
-	}
-	if !exists {
-		return Response{Status: "error", Data: "invalid entity"}, true
 	}
 
 	// Check if the command is an actual command
 	retn := Response{Status: "error", Data: "invalid command"}
 	for _, command := range commands {
 		if command.trigger == strings.ToLower(request.Command) {
-			retn = command.handler(requestEntity, request.Args)
+			if entityExists || (!entityExists && command.entityless) {
+				retn = command.handler(requestEntity, request.Args)
+				break
+			}
+			retn = Response{Status: "error", Data: "invalid entity"}
 			break
 		}
 	}
@@ -186,6 +188,14 @@ func main() {
 			state = 1
 		}
 		return Response{Status: "ok", Data: strconv.Itoa(state)}
+	}})
+	// List Command
+	commands = append(commands, Command{entityless: true, trigger: "list", handler: func(entity Entity, args []string) Response {
+		data, err := json.Marshal(entities)
+		if err != nil {
+			return Response{Status: "error", Data: fmt.Sprintf("internal error: %v", err)}
+		}
+		return Response{Status: "ok", Data: string(data)}
 	}})
 
 	go server.Process()
