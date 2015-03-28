@@ -87,6 +87,10 @@ func createPins(revision uint8) []GPIOPin {
 	}
 
 	for i := 0; i < pins+1; i++ {
+		if i >= 17 && i <= 20 {
+			// Pins do actually not exist, makes the pi crash
+			continue
+		}
 		retn = append(retn, CreatePin(i, INPUT))
 	}
 
